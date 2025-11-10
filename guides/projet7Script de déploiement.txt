@@ -1,0 +1,121 @@
+1️⃣ Un script de déploiement automatique (bash)
+
+2️⃣ Une procédure de déploiement claire (document prête à être présentée)
+
+
+✅ 1) Script de déploiement (deploy.sh)
+
+À placer à la racine du projet (projet7/)
+Puis rendre exécutable :
+chmod +x deploy.sh
+------------------------------
+#!/bin/bash
+
+echo "🚀 Déploiement en cours..."
+
+# 1. Mettre à jour le dépôt
+echo "📦 Mise à jour du code source..."
+git pull origin main
+
+# 2. Installer les dépendances
+echo "🔧 Installation des dépendances..."
+npm install
+
+# 3. Compilation (si front ou build – sinon ignoré)
+# echo "🏗️ Build du projet..."
+# npm run build
+
+# 4. Redémarrage du service avec PM2
+echo "♻️ Redémarrage du serveur..."
+pm2 restart wave-api || pm2 start server.js --name "wave-api"
+
+# 5. Affichage de l’état
+pm2 status
+
+echo "✅ Déploiement terminé avec succès."
+
+
+-----------------------------------------
+Donner les permissions :
+chmod +x deploy.sh
+Lancer le déploiement :
+./deploy.sh
+
+📄 2️⃣ Procédure de déploiement (document)
+Titre : Procédure de Déploiement de l’API Wave
+
+🎯 Objectif
+
+Déployer l’application Wave API (Node.js + Express + MongoDB) sur un serveur de production Linux.
+
+🏗️ Pré-requis
+Outil	Utilité
+Node.js (≥ 18)	Exécution du serveur
+npm	Gestion des packages
+MongoDB Atlas ou local	Base de données
+Git	Récupération du projet
+PM2	Gestion du processus Node.js
+NGINX (optionnel)	Reverse proxy et HTTPS
+
+1) Récupération du projet sur le serveur
+git clone https://github.com/mon-repo/projet6.git
+cd projet6
+
+2) Configuration des variables d’environnement
+
+Créer un fichier .env à la racine :
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/wave
+JWT_SECRET=une_phrase_complexe
+TOKEN_EXP=24h
+PORT=3000
+
+3) Installation des dépendances
+npm install
+
+4) Installation et configuration de PM2
+
+Installer PM2 :
+npm install -g pm2
+
+Lancer l’application une première fois :
+pm2 start server.js --name "wave-api"
+
+Sauvegarder la configuration + redémarrage auto même après reboot :
+pm2 save
+pm2 startup
+
+5) ⚙️ (Optionnel mais recommandé) Configuration NGINX en reverse proxy
+Fichier : /etc/nginx/sites-available/wave
+server {
+  listen 80;
+  server_name mon-domaine.fr;
+
+  location / {
+    proxy_pass http://localhost:3000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+}
+Activer la configuration :
+ln -s /etc/nginx/sites-available/wave /etc/nginx/sites-enabled/
+systemctl reload nginx
+
+6) Déploiement rapide après mise à jour du code
+./deploy.sh
+
+ou si première fois :
+pm2 restart wave-api
+
+7) Vérification du bon fonctionnement
+pm2 logs wave-api
+pm2 status
+curl http://localhost:3000/api/books
+✅ Résultat final
+
+Déploiement automatisé
+
+Serveur sécurisé et stable avec PM2
+
+Base MongoDB fonctionnelle
+
+Reverse proxy opérationnel (facultatif)

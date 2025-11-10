@@ -1,0 +1,82 @@
+1️⃣ Vérification syntaxique immédiate
+a) Avec Node
+
+Tu peux exécuter ton serveur :
+
+node server.js
+
+
+Si Node rencontre une erreur de syntaxe, il arrêtera le serveur et affichera la ligne exacte avec l’erreur.
+
+Exemple classique : SyntaxError: Unexpected token → souvent une accolade, parenthèse ou ; manquante.
+
+b) Avec nodemon (dev)
+npm run dev
+
+
+Nodemon redémarre automatiquement le serveur quand tu sauvegardes un fichier.
+
+Tu verras immédiatement les erreurs et le fichier concerné.
+
+2️⃣ Linting (vérification automatique du code)
+a) Installer ESLint
+npm install -D eslint
+npx eslint --init
+
+
+Tu peux choisir : Node.js, CommonJS, JS Standard ou Airbnb style.
+
+Ensuite, lance le lint :
+
+npx eslint .
+
+
+ESLint te montrera les erreurs et warnings, avec des suggestions pour corriger.
+
+b) Option : Prettier
+
+Pour le formatage automatique :
+
+npm install -D prettier
+npx prettier --check .
+
+
+Cela t’aide à garder un code propre et éviter certaines erreurs de style qui peuvent causer des bugs.
+
+3️⃣ Tester chaque route
+
+Même si le code est correct syntaxiquement, il peut y avoir des erreurs logiques (ex : JWT, requêtes MongoDB).
+
+Utilise Postman ou Insomnia pour tester :
+
+Signup
+
+Login → récupérer le token
+
+CRUD books (create, update, delete)
+
+Like/Dislike
+
+Si un endpoint renvoie une erreur, regarde :
+
+console.error côté serveur
+
+Vérifie les champs envoyés (userId, token, image)
+
+4️⃣ Ajouter des logs pour déboguer
+
+Dans tes controllers, tu peux temporairement ajouter :
+
+console.log('Request body:', req.body);
+console.log('Auth userId:', req.auth?.userId);
+
+
+Cela permet de suivre les valeurs et repérer ce qui est undefined ou mal formaté.
+
+5️⃣ Tests automatisés (option avancée)
+
+Avec Jest + Supertest, tu peux écrire des tests pour tes routes.
+
+Exemple : vérifier que POST /api/auth/signup crée bien un utilisateur.
+
+Cela détecte automatiquement des erreurs logiques.

@@ -1,0 +1,38 @@
+Parfait 😎 ! On va sécuriser le code initial de l’API Wave en ajoutant :
+
+Validation des champs avec express-validator
+
+Vérification stricte du type et taille des images dans multer
+
+Protection des routes avec helmet, cors, rate-limit
+
+Gestion des erreurs plus robuste
+
+Nettoyage des entrées pour éviter les injections
+
+1️⃣ Installer les dépendances supplémentaires
+npm install express-validator
+
+2️⃣ Sécuriser l’upload d’images (middlewares/multer-config.js)
+
+3️⃣ Validation des champs (exemple pour authController)
+controllers/authController.js
+
+4️⃣ Sécurisation globale dans server.js
+
+5️⃣ Nettoyage des entrées dans BookController
+
+Trim des champs, protection contre injection MongoDB :
+
+6️⃣ Gestion des erreurs plus robuste
+
+
+✅ Avec ces modifications :
+
+Les images sont contrôlées (type et taille).
+
+Les champs utilisateur et livre sont validés et nettoyés.
+
+Les routes sont protégées contre flood, headers malveillants et injections.
+
+Les erreurs remontent clairement.

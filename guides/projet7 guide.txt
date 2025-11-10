@@ -1,0 +1,90 @@
+✅ Problèmes identifiés lors des tests UAT
+
+Retour utilisateur	    
+    “On peut publier des lectures qui ne sont pas recommandables (racisme, violence, discrimination).”	
+Problème sous-jacent
+    ucune modération, risque de contenu offensant.
+Impact
+	L’application devient toxique → risque d’image et usage négatif.
+
+Retour utilisateur	
+    “Je passe trop de temps à chercher une lecture spécifique.”
+Problème sous-jacent
+	Pas de recherche ni de filtre efficace.	
+Impact
+    Perte de temps → insatisfaction utilisateur.
+“Suite aux retours des bêta utilisateurs, deux problématiques majeures ont été identifiées :
+d’une part, l’absence de modération permettait la publication de contenus inappropriés, d’autre part, la recherche de livres était trop longue.
+
+Pour y répondre, j’ai conçu deux améliorations :
+
+Un système de modération automatique des livres, détectant les mots problématiques avant la publication.
+
+Une fonction de recherche et de filtrage permettant de trouver rapidement une lecture par titre, auteur ou catégorie.
+
+Ces fonctionnalités vont améliorer l’expérience utilisateur, renforcer la qualité des contenus et rendre l’application plus agréable à utiliser au quotidien.”
+
+🎯 Objectif global des améliorations
+
+Rendre Wave plus sécurisé, fiable et facile à utiliser.
+
+1) 🔒 Mettre en place un système de modération de contenu
+🎁 Solution proposée : Filtrage automatique + Blocage manuel
+
+Lors de la création / modification d’un livre, analyser le contenu (titre, auteur, review) :
+// middleware/content-moderation.js
+const forbiddenWords = ['racisme', 'violence', 'discrimination', 'haine'];
+
+module.exports = (req, res, next) => {
+  const data = req.body.book ? JSON.parse(req.body.book) : req.body;
+
+  const text = `${data.title} ${data.review} ${data.category}`.toLowerCase();
+  for (const word of forbiddenWords) {
+    if (text.includes(word)) {
+      return res.status(400).json({ 
+        message: `Votre publication contient un terme interdit : "${word}". Veuillez reformuler.` 
+      });
+    }
+  }
+  next();
+};
+ 
+
+ ➡️ À ajouter dans la route d’ajout de livres :
+ const moderation = require('../middleware/content-moderation');
+ router.post('/', auth, moderation, multer, bookCtrl.create);
+Résultat attendu
+
+Diminution des contenus offensants
+
+Meilleure image de marque
+
+Meilleur respect des règles d’utilisation
+
+2) 🔍 Ajouter une barre de recherche + filtres
+💡 Fonctionnalités à ajouter
+
+Recherche par titre, auteur ou catégorie
+
+Tri par date ou popularité
+
+Exemple : Route de recherche /api/books/search?title=harry
+router.get('/search', async (req, res, next) => {
+  try {
+    const query = {};
+    if (req.query.title) query.title = { $regex: req.query.title, $options: 'i' };
+    if (req.query.author) query.author = { $regex: req.query.author, $options: 'i' };
+    if (req.query.category) query.category = req.query.category;
+
+    const books = await Book.find(query);
+    res.status(200).json(books);
+  } catch (err) { next(err); }
+});
+ 
+ Résultat attendu
+
+L’utilisateur trouve un livre en quelques secondes
+
+Meilleure expérience utilisateur
+
+Navigation plus fluide

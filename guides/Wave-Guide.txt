@@ -1,0 +1,287 @@
+Wave — API Express + Mongoose (Guide pas à pas)
+
+Ce document fournit une implémentation complète et expliquée de l'API Wave (bibliothèque de Villers-Cotterêts) en Node.js avec Express et Mongoose. Il contient :
+
+architecture du projet
+
+liste des dépendances
+
+fichiers sources (models, controllers, routes, middlewares)
+
+exemples de requêtes (signup / login / books / like)
+
+sécurité et bonnes pratiques
+
+******
+npm init
+npm install express mongoose bcrypt jsonwebtoken multer dotenv cors helmet express-rate-limit
+
+npm install -D nodemon
+*****
+
+Et dans package.json, ajoute le script dev :
+
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js"
+} 
+
+Structure finale du projet
+1️⃣ server.js
+2️⃣ Models
+3️⃣ Middleware
+4️⃣ Controllers
+5️⃣ Routes
+
+Le projet est directement fonctionnel après npm install et npm run dev.
+
+Tu devrais voir :
+
+Connected to MongoDB
+Server running on port 3000
+
+
+
+///////////***MongoDB Atlas**////////////
+utiliser MongoDB Atlas (base cloud) au lieu d’une base locale. Voilà comment procéder étape par étape :
+1️⃣ Créer un compte Atlas
+
+Va sur MongoDB Atlas
+ et crée un compte gratuit.
+
+Connecte-toi au dashboard.
+
+2️⃣ Créer un cluster
+
+Clique sur Build a Cluster → choisis Shared Cluster (Free Tier).
+
+Sélectionne la région la plus proche de toi pour de meilleures performances.
+
+Clique sur Create Cluster (cela peut prendre quelques minutes).
+
+3️⃣ Créer un utilisateur de base de données
+
+Dans le cluster, va dans Database Access → Add New Database User.
+
+Choisis un nom d’utilisateur et un mot de passe (tu les utiliseras dans ton .env).
+
+Donne-lui les permissions Read and write to any database.
+
+Clique sur Add User.
+
+4️⃣ Configurer les accès réseau
+
+Va dans Network Access → Add IP Address.
+
+Clique sur Allow Access from Anywhere (0.0.0.0/0) pour tester rapidement.
+⚠️ En production, restreindre aux IP fiables.
+
+5️⃣ Récupérer l’URI de connexion
+
+Dans ton cluster, clique sur Connect → Connect your application.
+
+Copie le connection string qui ressemble à ceci :
+
+mongodb+srv://<username>:<password>@cluster0.abcd123.mongodb.net/wave?retryWrites=true&w=majority
+
+
+Remplace <username> et <password> par ceux que tu as créés.
+
+Mets cette URI dans ton fichier .env :
+
+MONGO_URI=mongodb+srv://monUser:monMotDePasse@cluster0.abcd123.mongodb.net/wave?retryWrites=true&w=majority
+
+
+Le dernier wave dans l’URI correspond au nom de la base de données. Atlas créera la DB automatiquement à la première insertion de document.
+
+6️⃣ Tester la connexion
+
+Lance ton serveur :
+
+npm run dev
+
+
+Si tu vois Connected to MongoDB, la connexion Atlas fonctionne.
+
+Toute création d’utilisateur ou de livre sera directement stockée sur Atlas.
+
+///////////***fin MongoDB Atlas**////////////
+
+
+
+///////////***Tester l’API**////////////
+
+5️⃣ Tester l’API
+3️⃣ Tester l’API
+a) Créer un utilisateur (signup)
+
+Méthode : POST
+
+URL : http://localhost:3000/api/auth/signup
+
+Body → raw → JSON :
+
+{
+  "name": "Paul",
+  "email": "paul@example.com",
+  "password": "azertyui"
+}
+
+
+Cliquer sur Send → tu dois voir { "message": "User created" }.
+
+b) Se connecter (login)
+
+Méthode : POST
+
+URL : http://localhost:3000/api/auth/login
+
+Body → raw → JSON :
+
+{
+  "email": "paul@example.com",
+  "password": "azertyui"
+}
+
+
+Cliquer sur Send → tu obtiens :
+
+{
+  "userId": "...",
+  "token": "..."
+}
+
+
+Copie le token pour les prochaines requêtes.
+
+c) Ajouter un livre
+
+Étapes détaillées
+1️⃣ Méthode et URL
+
+Méthode : POST
+
+URL : http://localhost:3000/api/books
+
+2️⃣ Headers
+
+Clique sur l’onglet Headers dans Postman
+
+Ajoute une clé : Authorization
+
+Valeur : Bearer <ton_token>
+Exemple :
+
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+
+Attention à mettre bien un espace après Bearer.
+
+3️⃣ Body → Form-data
+
+Clique sur l’onglet Body
+
+Sélectionne form-data
+
+Ajoute deux clés :
+
+Key	Value	Type
+image	Clique sur Select Files et choisis un fichier image depuis ton ordinateur	File
+book	Copie-colle ce JSON mais en une seule ligne, type Text	Text
+
+Exemple book :
+
+{"userId":"64f1e2f9f0a1b23456789abc","title":"Mon livre","author":"Auteur","publisher":"Maison","category":"Roman","review":"Super livre"}
+
+
+Remplace "userId" par l’ID que tu as récupéré après le login.
+
+Important : tout doit être sur une seule ligne, pas de retour à la ligne, sinon ça ne sera pas parsé correctement.
+
+4️⃣ Envoyer
+
+Clique sur Send
+
+Si tout est correct, tu verras :
+
+{ "message": "Book created" }
+
+
+Ton image sera stockée dans le dossier images/ et l’URL de l’image sera sauvegardée dans MongoDB Atlas.
+
+d) Voir tous les livres
+
+Méthode : GET
+
+URL : http://localhost:3000/api/books
+
+Cliquer sur Send → Postman affiche tous les livres stockés dans MongoDB Atlas
+
+3️⃣ Mettre à jour un livre
+
+Méthode : PUT
+
+URL : http://localhost:3000/api/books/:id
+
+Remplace :id par l’id du livre que tu veux modifier (tu peux récupérer via GET /api/books).
+
+Headers : Authorization: Bearer {{token}}
+
+Body → form-data ou raw JSON si pas d’image :
+
+Form-data exemple avec image :
+
+Key	Value	Type
+image	Choisir une image nouvelle	File
+book	{"title":"Mon livre modifié","author":"Auteur","publisher":"Maison","category":"Roman","review":"Super livre"}	Text
+
+Sans image : Body → raw JSON :
+
+{
+  "title": "Mon livre modifié",
+  "author": "Auteur",
+  "publisher": "Maison",
+  "category": "Roman",
+  "review": "Super livre"
+}
+
+
+Réponse : { "message": "Book updated" }
+
+4️⃣ Supprimer un livre
+
+Méthode : DELETE
+
+URL : http://localhost:3000/api/books/:id
+
+Headers : Authorization: Bearer {{token}}
+
+Réponse : { "message": "Book deleted" }
+
+5️⃣ Like / Dislike
+
+Méthode : POST
+
+URL : http://localhost:3000/api/books/:id/like
+
+Headers : Authorization: Bearer {{token}}
+
+Body → raw JSON :
+
+{ "userId": "{{userId}}", "like": 1 }   // 1 = like, -1 = dislike, 0 = annuler
+
+
+Réponse : { "message": "Like status updated" }
+
+6️⃣ GET livre(s)
+
+GET all books : GET http://localhost:3000/api/books
+
+GET one book : GET http://localhost:3000/api/books/:id
+
+Pas besoin d’auth pour GET si tu veux afficher tous les livres.
+
+///////////***fin Tester l’API**////////////
+
+
+
