@@ -1,91 +1,116 @@
-1️⃣ Un script de déploiement automatique (bash)
+1️⃣ Script de déploiement automatique (deploy.sh)
 
-2️⃣ Une procédure de déploiement claire (document prête à être présentée)
+À placer à la racine du projet (projet7/) puis rendre exécutable :
 
-
-✅ 1) Script de déploiement (deploy.sh)
-
-À placer à la racine du projet (projet7/)
-Puis rendre exécutable :
 chmod +x deploy.sh
-------------------------------
+
+
+Contenu du script :
+
 #!/bin/bash
 
 echo "🚀 Déploiement en cours..."
 
-# 1. Mettre à jour le dépôt
-echo "📦 Mise à jour du code source..."
-git pull origin main
+# 1. Aller dans le dossier du projet
+cd /chemin/vers/projet7 || exit
+echo "📂 Dossier projet : OK"
 
-# 2. Installer les dépendances
-echo "🔧 Installation des dépendances..."
+# 2. Mettre à jour le dépôt
+# Utiliser la branche correcte (master ou main)
+git pull origin master
+
+# 3. Installer les dépendances
+echo "🔧 Installation / Vérification des dépendances..."
 npm install
 
-# 3. Compilation (si front ou build – sinon ignoré)
+# 4. (Optionnel) Build du front si nécessaire
 # echo "🏗️ Build du projet..."
 # npm run build
 
-# 4. Redémarrage du service avec PM2
+# 5. Redémarrer le service avec PM2
 echo "♻️ Redémarrage du serveur..."
 pm2 restart wave-api || pm2 start server.js --name "wave-api"
 
-# 5. Affichage de l’état
+# 6. Affichage de l’état
 pm2 status
 
 echo "✅ Déploiement terminé avec succès."
 
 
------------------------------------------
-Donner les permissions :
-chmod +x deploy.sh
-Lancer le déploiement :
+Pour lancer le déploiement :
+
 ./deploy.sh
 
-📄 2️⃣ Procédure de déploiement (document)
+2️⃣ Procédure de déploiement – Guide complet
 Titre : Procédure de Déploiement de l’API Wave
-
 🎯 Objectif
 
-Déployer l’application Wave API (Node.js + Express + MongoDB) sur un serveur de production Linux.
+Déployer l’application Wave API (Node.js + Express + MongoDB) sur un serveur Windows ou Linux avec PM2, en sécurisant les secrets.
 
 🏗️ Pré-requis
 Outil	Utilité
-Node.js (≥ 18)	Exécution du serveur
+Node.js (≥ 18)	Exécuter le serveur
 npm	Gestion des packages
 MongoDB Atlas ou local	Base de données
-Git	Récupération du projet
+Git	Récupération et mise à jour du projet
 PM2	Gestion du processus Node.js
 NGINX (optionnel)	Reverse proxy et HTTPS
+1️⃣ Récupération du projet sur le serveur
+git clone https://github.com/mon-repo/projet7.git
+cd projet7
 
-1) Récupération du projet sur le serveur
-git clone https://github.com/mon-repo/projet6.git
-cd projet6
 
-2) Configuration des variables d’environnement
+Vérifie la branche utilisée :
 
-Créer un fichier .env à la racine :
+git branch
+# Exemple : master
+
+2️⃣ Configuration des variables d’environnement
+
+Créer un fichier .env à la racine (NE PAS COMMITTER) :
+
 MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/wave
 JWT_SECRET=une_phrase_complexe
 TOKEN_EXP=24h
 PORT=3000
 
-3) Installation des dépendances
+
+Ajouter .env au .gitignore :
+
+.env
+
+
+Créer un .env.example pour documenter les variables nécessaires :
+
+MONGO_URI=
+JWT_SECRET=
+TOKEN_EXP=
+PORT=3000
+
+3️⃣ Installation des dépendances
 npm install
 
-4) Installation et configuration de PM2
+4️⃣ Installation et configuration de PM2
 
-Installer PM2 :
+Installer PM2 globalement :
+
 npm install -g pm2
 
-Lancer l’application une première fois :
+
+Lancer l’application la première fois :
+
 pm2 start server.js --name "wave-api"
 
-Sauvegarder la configuration + redémarrage auto même après reboot :
+
+Sauvegarder la configuration pour redémarrage automatique :
+
 pm2 save
 pm2 startup
 
-5) ⚙️ (Optionnel mais recommandé) Configuration NGINX en reverse proxy
-Fichier : /etc/nginx/sites-available/wave
+5️⃣ (Optionnel) Configuration NGINX en reverse proxy
+
+Créer un fichier /etc/nginx/sites-available/wave :
+
 server {
   listen 80;
   server_name mon-domaine.fr;
@@ -96,23 +121,40 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
   }
 }
+
+
 Activer la configuration :
+
 ln -s /etc/nginx/sites-available/wave /etc/nginx/sites-enabled/
 systemctl reload nginx
 
-6) Déploiement rapide après mise à jour du code
+6️⃣ Déploiement après mise à jour du code
 ./deploy.sh
 
-ou si première fois :
-pm2 restart wave-api
 
-7) Vérification du bon fonctionnement
+Si c’est la première fois ou si PM2 n’est pas lancé :
+
+pm2 start server.js --name "wave-api"
+
+7️⃣ Vérification du bon fonctionnement
+
+Vérifier les logs PM2 :
+
 pm2 logs wave-api
+
+
+Vérifier l’état du serveur :
+
 pm2 status
+
+
+Tester l’API :
+
 curl http://localhost:3000/api/books
+
 ✅ Résultat final
 
-Déploiement automatisé
+Déploiement automatisé avec deploy.sh
 
 Serveur sécurisé et stable avec PM2
 
